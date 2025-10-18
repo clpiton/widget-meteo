@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Météo - Saint-Michel-Chef-Chef</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            color: #fff;
+            transition: background 1s ease;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .weather-widget {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            width: 300px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .temperature {
+            font-size: 50px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .description {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-transform: capitalize;
+        }
+        .details {
+            font-size: 16px;
+            text-align: left;
+            margin: 10px auto;
+            line-height: 1.6;
+            max-width: 200px;
+        }
+        .refresh-button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
+        .weather-icon {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="weather-widget">
+        <h1>Météo à Saint-Michel-Chef-Chef</h1>
+        <img id="icon" class="weather-icon" src="" alt="Icône météo">
+        <div class="temperature" id="temperature">--°C</div>
+        <div class="description" id="description">Chargement...</div>
+        <div class="details">
+            <div id="humidity">Humidité : --%</div>
+            <div id="wind">Vent : -- km/h</div>
+            <div id="pressure">Pression : -- hPa</div>
+        </div>
+        <button class="refresh-button" onclick="getWeather()">Actualiser</button>
+    </div>
+
+    <script>
+        const API_KEY = '7cb4de45f6d2ad928ee019be3c5762e0'; // ← Remplacez par votre clé
+        const CITY = 'Saint-Michel-Chef-Chef';
+        const API_URL = `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${API_KEY}&units=metric&lang=fr`;
+
+        async function getWeather() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                if (data.cod === 200) {
+                    const temp = Math.round(data.main.temp);
+                    const desc = data.weather[0].description;
+                    const humidity = data.main.humidity;
+                    const wind = (data.wind.speed * 3.6).toFixed(1); // m/s → km/h
+                    const pressure = data.main.pressure;
+                    const iconCode = data.weather[0].icon;
+
+                    document.getElementById('temperature').textContent = `${temp}°C`;
+                    document.getElementById('description').textContent = desc;
+                    document.getElementById('humidity').textContent = `Humidité : ${humidity}%`;
+                    document.getElementById('wind').textContent = `Vent : ${wind} km/h`;
+                    document.getElementById('pressure').textContent = `Pression : ${pressure} hPa`;
+                    document.getElementById('icon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+                    // 🔄 Fond dynamique selon la météo
+                    updateBackground(iconCode);
+                } else {
+                    document.getElementById('description').textContent = 'Ville non trouvée';
+                }
+            } catch (error) {
+                document.getElementById('description').textContent = 'Erreur de connexion';
+            }
+        }
+
+        // 🎨 Change le fond selon la météo
+        function updateBackground(iconCode) {
+            const body = document.body;
+
+            if (iconCode.includes('01')) { // ciel clair
+                body.style.background = 'linear-gradient(135deg, #56CCF2, #2F80ED)';
+            } else if (iconCode.includes('02') || iconCode.includes('03') || iconCode.includes('04')) { // nuages
+                body.style.background = 'linear-gradient(135deg, #bdc3c7, #2c3e50)';
+            } else if (iconCode.includes('09') || iconCode.includes('10')) { // pluie
+                body.style.background = 'linear-gradient(135deg, #667db6, #0082c8, #0082c8, #667db6)';
+            } else if (iconCode.includes('11')) { // orage
+                body.style.background = 'linear-gradient(135deg, #141E30, #243B55)';
+            } else if (iconCode.includes('13')) { // neige
+                body.style.background = 'linear-gradient(135deg, #E0EAFC, #CFDEF3)';
+            } else { // brouillard ou autres
+                body.style.background = 'linear-gradient(135deg, #757F9A, #D7DDE8)';
+            }
+        }
+
+        window.onload = getWeather;
+    </script>
+
+</body>
+</html>
